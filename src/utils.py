@@ -24,9 +24,17 @@ def save_object(file_path, obj):
 
 
 def map_yes_no_to_binary(X):
-    print(type(X))
-    X.map({"Yes": 1, "No": 0})
+    # get columns of X
+    cols = X.columns
+    #iterate
+    for col in cols:
+        X[col] = X[col].map({"Yes": 1, "No": 0})
     return X
     
 def map_gender(X):
-    return X.map({"Female": 1, "Male": 0})
+    # get columns of X
+    cols = X.columns
+    #iterate
+    for col in cols:
+        X[col] = X[col].map({"Female": 1, "Male": 0})
+    return X
