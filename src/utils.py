@@ -1,12 +1,13 @@
 import os
 import sys
+import json
 
 import numpy as np 
 import pandas as pd
 #import dill
 import pickle
-from sklearn.metrics import recall_score,accuracy_score,f1_score
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import recall_score,accuracy_score,f1_score,precision_recall_curve
+from sklearn.model_selection import cross_val_predict,GridSearchCV
 
 from src.exception import CustomException
 
@@ -77,3 +78,32 @@ def load_object(file_path):
 
     except Exception as e:
         raise CustomException(e, sys)
+    
+def save_json(file_path,value):
+    try:
+        dir_path = os.path.dirname(file_path)
+
+        os.makedirs(dir_path, exist_ok=True)
+
+        with open(file_path, 'w') as f:
+            json.dump({"threshold": value}, f)
+
+    except Exception as e:
+        raise CustomException(e, sys)
+
+    
+def load_json(file_path):
+    try:
+        with open(file_path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        raise CustomException(e, sys)
+        
+    
+def find_threshold(model,y_train,X_train,target_recall=0.9):
+    y_scores = cross_val_predict(model,X_train,y_train,cv=3,method='decision_function')
+    precisons,recalls,thresholds = precision_recall_curve(y_train,y_scores)
+    differences = np.abs(recalls - target_recall)
+    closest_index = np.argmin(differences)
+    threshold = thresholds[closest_index]
+    return threshold

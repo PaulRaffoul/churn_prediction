@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 from sklearn.ensemble import (
     AdaBoostRegressor,
@@ -17,11 +18,12 @@ from sklearn.neighbors import KNeighborsClassifier
 from src.exception import CustomException
 from src.logger import logging
 
-from src.utils import save_object,evaluate_models
+from src.utils import save_object,evaluate_models,find_threshold,load_json,save_json
 
 class ModelTrainer:
     def __init__(self):
         self.trained_model_file_path = os.path.join("artifacts","model.pkl")
+        self.threshold_path = os.path.join("artifacts","threshold.json")
     
     def initiate_model_trainer(self,train_array,test_array):
         try:
@@ -33,7 +35,7 @@ class ModelTrainer:
                 test_array[:,-1],
             )
             models = {
-                "K Neighbors":KNeighborsClassifier(),
+                # "K Neighbors":KNeighborsClassifier(),
                 "Decision Tree":DecisionTreeClassifier(),
                 "Logistic Regression":LogisticRegression(max_iter=200),
                 "Support Vector":SVC(),
@@ -82,10 +84,18 @@ class ModelTrainer:
                 obj=best_model
             )
 
-            predicted=best_model.predict(X_test)
+            #get threshold for recall 90 percent
+            threshold = find_threshold(model=best_model,y_train=y_train,X_train=X_train,target_recall=0.9)
+            save_json(self.threshold_path,value=threshold)
 
-            score = recall_score(y_test, predicted)
-            return score
+            logging.info(f"Threshold for high recall generated and saved")
+
+            print(threshold)
+
+            # predicted=best_model.predict(X_test)
+
+            # score = recall_score(y_test, predicted)
+            # return score
             
         except Exception as e:
             raise CustomException(e,sys)
