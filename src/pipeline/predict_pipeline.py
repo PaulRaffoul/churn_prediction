@@ -1,5 +1,6 @@
 import sys
 import os
+import numpy as np
 import pandas as pd
 from src.exception import CustomException
 from src.utils import load_object,load_json
@@ -19,7 +20,7 @@ class PredictPipeline:
             threshold_path = os.path.join("artifacts","threshold.json")
             threshold = load_json(threshold_path)['threshold']
             data_scaled = preprocessor.transform(features)
-            proba_pred = model.predict_proba(data_scaled)
+            proba_pred = model.decision_function(data_scaled)
             predictions_inference = (proba_pred > threshold).astype(int)
             return predictions_inference
         except Exception as e:
